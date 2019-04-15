@@ -49,8 +49,8 @@ func main() {
   api.POST("/jokes/like/:jokeID", LikeJoke)
 
   // Start and run the server
-  // router.Run(":3000")
-  router.Run(":80")
+  router.Run(":3000")
+  //router.Run(":80")
 }
 
 // JokeHandler retrieves a list of available jokes
