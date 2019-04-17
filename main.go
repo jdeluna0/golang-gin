@@ -5,6 +5,10 @@ import (
   "github.com/gin-gonic/contrib/static"
   "github.com/gin-gonic/gin"
   "strconv"
+  "log"
+  "io/ioutil"
+  "gopkg.in/yaml.v2"
+  "fmt"
 )
 
 // Let's create our Jokes struct. This will contain information about a Joke
@@ -24,6 +28,29 @@ var jokes = []Joke{
   Joke{5, 0, "I just watched a program about beavers. It was the best dam program I've ever seen."},
   Joke{6, 0, "Why did the coffee file a police report? It got mugged."},
   Joke{7, 0, "How does a penguin build it's house? Igloos it together."},
+}
+
+// Define JSON struct for yaml config file conversion
+type T struct {
+  ENV struct {
+    PROD bool `yaml:"prod"`
+  }
+}
+
+func check(e error) {
+  if e != nil {
+      log.Fatalf("error: %v", e)
+  }
+}
+
+func get_env () bool {
+  data, err := ioutil.ReadFile("config.yml")
+  check(err)
+  t := T{}
+
+  error := yaml.Unmarshal([]byte(data), &t)
+  check(error)
+  return t.ENV.PROD
 }
 
 func main() {
@@ -49,8 +76,12 @@ func main() {
   api.POST("/jokes/like/:jokeID", LikeJoke)
 
   // Start and run the server
-  router.Run(":3000")
-  //router.Run(":80")
+  if get_env() {
+    router.Run(":80")
+    gin.SetMode(gin.ReleaseMode)
+  } else {
+    router.Run(":3000")
+  }
 }
 
 // JokeHandler retrieves a list of available jokes
@@ -78,4 +109,3 @@ func LikeJoke(c *gin.Context) {
     c.AbortWithStatus(http.StatusNotFound)
   }
 }
-
